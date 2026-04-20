@@ -8,6 +8,7 @@ export default function Sidebar({
   currentConversationId,
   onSelectConversation,
   onNewConversation,
+  onOpenSettings,
 }) {
   return (
     <div className={`sidebar ${isOpen ? 'open' : ''}`}>
@@ -18,6 +19,11 @@ export default function Sidebar({
       <button className="new-conversation-btn" onClick={onNewConversation}>
         + New Conversation
       </button>
+      <div style={{ padding: '0 16px' }}>
+        <button className="settings-btn" onClick={onOpenSettings}>
+          ⚙ Settings
+        </button>
+      </div>
 
       <div className="conversation-list">
         {conversations.length === 0 ? (

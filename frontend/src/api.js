@@ -15,6 +15,29 @@ function getUserId() {
 
 
 export const api = {
+
+  async getSettings() {
+    const response = await fetch(`${API_BASE}/api/settings?user_id=${getUserId()}`);
+    if (!response.ok) throw new Error('Failed to load settings');
+    return response.json();
+  },
+
+  async saveSettings(settings) {
+    const response = await fetch(`${API_BASE}/api/settings?user_id=${getUserId()}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings),
+    });
+    if (!response.ok) throw new Error('Failed to save settings');
+    return response.json();
+  },
+
+  async getModels() {
+    const response = await fetch(`${API_BASE}/api/models`);
+    if (!response.ok) throw new Error('Failed to fetch models');
+    return response.json();
+  },
+
   /**
    * List all conversations.
    */

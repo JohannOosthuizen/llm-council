@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatInterface from './components/ChatInterface';
+import SettingsModal from './components/SettingsModal';
 import { api } from './api';
 import './App.css';
 
@@ -10,6 +11,7 @@ function App() {
   const [currentConversation, setCurrentConversation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Load conversations on mount
   useEffect(() => {
@@ -182,7 +184,9 @@ function App() {
         currentConversationId={currentConversationId}
         onSelectConversation={handleSelectConversation}
         onNewConversation={handleNewConversation}
+        onOpenSettings={() => { setSidebarOpen(false); setSettingsOpen(true); }}
       />
+      <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <ChatInterface
         conversation={currentConversation}
         onSendMessage={handleSendMessage}
