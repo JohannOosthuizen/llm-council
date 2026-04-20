@@ -109,60 +109,78 @@ export default function SettingsModal({ isOpen, onClose }) {
 }
 
 function ModelSelect({ value, onChange, models }) {
-  const [search, setSearch] = useState(value || '');
+  const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
-
-  useEffect(() => {
-    setSearch(value || '');
-  }, [value]);
 
   useEffect(() => {
     function handleClickOutside(event) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setIsOpen(false);
-        setSearch(value || '');
+        setSearch('');
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [value]);
+  }, []);
 
-  const filteredModels = models.filter(m => 
-    m.id.toLowerCase().includes(search.toLowerCase()) || 
-    (m.name && m.name.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filteredModels = [...models]
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .filter(m => {
+      if (!search) return true;
+      const term = search.toLowerCase();
+      return m.id.toLowerCase().includes(term) || 
+             (m.name && m.name.toLowerCase().includes(term));
+    }).slice(0, 100);
+
+  const getProvider = (id) => id.split('/')[0];
 
   return (
     <div className="model-select-wrapper" ref={wrapperRef}>
-      <input 
-        type="text" 
-        value={search}
-        onChange={e => {
-          setSearch(e.target.value);
-          setIsOpen(true);
-        }}
-        onFocus={() => setIsOpen(true)}
-        className="settings-input"
-        placeholder="Search for a model..."
-      />
+      <div className="model-select-input-container">
+        <input 
+          type="text" 
+          value={isOpen ? search : (value || '')}
+          onChange={e => {
+            setSearch(e.target.value);
+            setIsOpen(true);
+          }}
+          onFocus={() => {
+            setIsOpen(true);
+            setSearch('');
+          }}
+          className="settings-input"
+          placeholder="Search all OpenRouter models..."
+        />
+        {value && !isOpen && <span className="current-model-tag">{getProvider(value)}</span>}
+      </div>
+      
       {isOpen && (
         <div className="model-dropdown">
-          {filteredModels.map(m => (
-            <div 
-              key={m.id} 
-              className="model-option"
-              onClick={() => {
-                onChange(m.id);
-                setSearch(m.id);
-                setIsOpen(false);
-              }}
-            >
-              <div className="model-option-id">{m.id}</div>
-              <div className="model-option-name">{m.name}</div>
-            </div>
-          ))}
-          {filteredModels.length === 0 && <div className="model-option-empty">No models found</div>}
+          {filteredModels.length > 0 ? (
+            filteredModels.map(m => (
+              <div 
+                key={m.id} 
+                className={`model-option ${m.id === value ? 'selected' : ''}`}
+                onClick={() => {
+                  onChange(m.id);
+                  setSearch('');
+                  setIsOpen(false);
+                }}
+              >
+                <div className="model-option-header">
+                  <span className="model-option-provider">{getProvider(m.id)}</span>
+                  <span className="model-option-id">{m.id.split('/')[1] || m.id}</span>
+                </div>
+                <div className="model-option-name">{m.name}</div>
+              </div>
+            ))
+          ) : (
+            <div className="model-option-empty">No models found for "{search}"</div>
+          )}
+          {models.length > 100 && !search && (
+            <div className="model-option-hint">Showing first 100 models. Use search to find more.</div>
+          )}
         </div>
       )}
     </div>
