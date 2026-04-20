@@ -1,0 +1,35 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: council-backend
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env
+    networks:
+      - traefik-4tdm
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: council-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.council.rule=Host(`council.teachablemachine.co.za`)"
+      - "traefik.http.routers.council.entrypoints=websecure"
+      - "traefik.http.routers.council.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.council.service=council-svc"
+      - "traefik.http.services.council-svc.loadbalancer.server.port=80"
+    networks:
+      - traefik-4tdm
+
+networks:
+  traefik-4tdm:
+    external: true
