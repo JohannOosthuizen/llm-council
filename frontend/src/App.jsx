@@ -9,6 +9,7 @@ function App() {
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Load conversations on mount
   useEffect(() => {
@@ -48,6 +49,7 @@ function App() {
         ...conversations,
       ]);
       setCurrentConversationId(newConv.id);
+      setSidebarOpen(false);
     } catch (error) {
       console.error('Failed to create conversation:', error);
     }
@@ -55,6 +57,7 @@ function App() {
 
   const handleSelectConversation = (id) => {
     setCurrentConversationId(id);
+    setSidebarOpen(false);
   };
 
   const handleSendMessage = async (content) => {
@@ -69,7 +72,6 @@ function App() {
         messages: [...prev.messages, userMessage],
       }));
 
-      // Create a partial assistant message that will be updated progressively
       const assistantMessage = {
         role: 'assistant',
         stage1: null,
@@ -83,13 +85,11 @@ function App() {
         },
       };
 
-      // Add the partial assistant message
       setCurrentConversation((prev) => ({
         ...prev,
         messages: [...prev.messages, assistantMessage],
       }));
 
-      // Send message with streaming
       await api.sendMessageStream(currentConversationId, content, (eventType, event) => {
         switch (eventType) {
           case 'stage1_start':
@@ -100,7 +100,6 @@ function App() {
               return { ...prev, messages };
             });
             break;
-
           case 'stage1_complete':
             setCurrentConversation((prev) => {
               const messages = [...prev.messages];
@@ -110,7 +109,6 @@ function App() {
               return { ...prev, messages };
             });
             break;
-
           case 'stage2_start':
             setCurrentConversation((prev) => {
               const messages = [...prev.messages];
@@ -119,7 +117,6 @@ function App() {
               return { ...prev, messages };
             });
             break;
-
           case 'stage2_complete':
             setCurrentConversation((prev) => {
               const messages = [...prev.messages];
@@ -130,7 +127,6 @@ function App() {
               return { ...prev, messages };
             });
             break;
-
           case 'stage3_start':
             setCurrentConversation((prev) => {
               const messages = [...prev.messages];
@@ -139,7 +135,6 @@ function App() {
               return { ...prev, messages };
             });
             break;
-
           case 'stage3_complete':
             setCurrentConversation((prev) => {
               const messages = [...prev.messages];
@@ -149,30 +144,23 @@ function App() {
               return { ...prev, messages };
             });
             break;
-
           case 'title_complete':
-            // Reload conversations to get updated title
             loadConversations();
             break;
-
           case 'complete':
-            // Stream complete, reload conversations list
             loadConversations();
             setIsLoading(false);
             break;
-
           case 'error':
             console.error('Stream error:', event.message);
             setIsLoading(false);
             break;
-
           default:
             console.log('Unknown event type:', eventType);
         }
       });
     } catch (error) {
       console.error('Failed to send message:', error);
-      // Remove optimistic messages on error
       setCurrentConversation((prev) => ({
         ...prev,
         messages: prev.messages.slice(0, -2),
@@ -183,7 +171,13 @@ function App() {
 
   return (
     <div className="app">
+      <div 
+        className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      ></div>
       <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
         conversations={conversations}
         currentConversationId={currentConversationId}
         onSelectConversation={handleSelectConversation}
@@ -193,6 +187,7 @@ function App() {
         conversation={currentConversation}
         onSendMessage={handleSendMessage}
         isLoading={isLoading}
+        onToggleSidebar={() => setSidebarOpen(true)}
       />
     </div>
   );

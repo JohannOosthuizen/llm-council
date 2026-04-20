@@ -2,19 +2,22 @@ import { useState, useEffect } from 'react';
 import './Sidebar.css';
 
 export default function Sidebar({
+  isOpen,
+  onClose,
   conversations,
   currentConversationId,
   onSelectConversation,
   onNewConversation,
 }) {
   return (
-    <div className="sidebar">
+    <div className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
         <h1>LLM Council</h1>
-        <button className="new-conversation-btn" onClick={onNewConversation}>
-          + New Conversation
-        </button>
+        <button className="close-sidebar-btn" onClick={onClose}>&times;</button>
       </div>
+      <button className="new-conversation-btn" onClick={onNewConversation}>
+        + New Conversation
+      </button>
 
       <div className="conversation-list">
         {conversations.length === 0 ? (

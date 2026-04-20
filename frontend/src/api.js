@@ -4,12 +4,22 @@
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
+function getUserId() {
+  let userId = localStorage.getItem('user_id');
+  if (!userId) {
+    userId = crypto.randomUUID();
+    localStorage.setItem('user_id', userId);
+  }
+  return userId;
+}
+
+
 export const api = {
   /**
    * List all conversations.
    */
   async listConversations() {
-    const response = await fetch(`${API_BASE}/api/conversations`);
+    const response = await fetch(`${API_BASE}/api/conversations?user_id=${getUserId()}`);
     if (!response.ok) {
       throw new Error('Failed to list conversations');
     }
@@ -25,7 +35,7 @@ export const api = {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({ user_id: getUserId() }),
     });
     if (!response.ok) {
       throw new Error('Failed to create conversation');

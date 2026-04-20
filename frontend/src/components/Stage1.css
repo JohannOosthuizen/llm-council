@@ -1,14 +1,15 @@
+
 .stage {
   margin: 24px 0;
   padding: 20px;
-  background: #fafafa;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
 }
 
 .stage-title {
   margin: 0 0 16px 0;
-  color: #333;
+  color: var(--text-heading);
   font-size: 16px;
   font-weight: 600;
 }
@@ -16,50 +17,55 @@
 .tabs {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 0;
   flex-wrap: wrap;
 }
 
 .tab {
-  padding: 8px 16px;
-  background: #ffffff;
-  border: 1px solid #d0d0d0;
-  border-radius: 6px 6px 0 0;
-  color: #666;
+  padding: 10px 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
+  margin-bottom: -1px;
+  z-index: 1;
 }
 
 .tab:hover {
-  background: #f0f0f0;
-  color: #333;
-  border-color: #4a90e2;
+  background: var(--bg-input);
+  color: var(--text-primary);
 }
 
 .tab.active {
-  background: #ffffff;
-  color: #4a90e2;
-  border-color: #4a90e2;
-  border-bottom-color: #ffffff;
+  background: var(--bg-primary);
+  color: var(--accent-color);
+  border-color: var(--border-color);
+  border-bottom-color: var(--bg-primary);
   font-weight: 600;
+  z-index: 3;
 }
 
 .tab-content {
-  background: #ffffff;
+  background: var(--bg-primary);
   padding: 16px;
-  border-radius: 6px;
-  border: 1px solid #e0e0e0;
+  border-radius: 0 8px 8px 8px;
+  border: 1px solid var(--border-color);
+  position: relative;
+  z-index: 2;
 }
 
 .model-name {
-  color: #888;
+  color: var(--text-muted);
   font-size: 12px;
   margin-bottom: 12px;
   font-family: monospace;
 }
 
 .response-text {
-  color: #333;
+  color: var(--text-primary);
   line-height: 1.6;
 }

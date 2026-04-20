@@ -9,6 +9,7 @@ export default function ChatInterface({
   conversation,
   onSendMessage,
   isLoading,
+  onToggleSidebar
 }) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
@@ -30,31 +31,23 @@ export default function ChatInterface({
   };
 
   const handleKeyDown = (e) => {
-    // Submit on Enter (without Shift)
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
   };
 
-  if (!conversation) {
-    return (
-      <div className="chat-interface">
-        <div className="empty-state">
-          <h2>Welcome to LLM Council</h2>
-          <p>Create a new conversation to get started</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="chat-interface">
+      <div className="chat-header">
+        <button className="hamburger-btn" onClick={onToggleSidebar}>&#9776;</button>
+        <span style={{ fontWeight: 600 }}>{conversation ? conversation.title || 'Conversation' : 'LLM Council'}</span>
+      </div>
       <div className="messages-container">
-        {conversation.messages.length === 0 ? (
+        {!conversation || conversation.messages.length === 0 ? (
           <div className="empty-state">
-            <h2>Start a conversation</h2>
-            <p>Ask a question to consult the LLM Council</p>
+            <h2>{conversation ? 'Start a conversation' : 'Welcome to LLM Council'}</h2>
+            <p>{conversation ? 'Ask a question to consult the LLM Council' : 'Create a new conversation to get started'}</p>
           </div>
         ) : (
           conversation.messages.map((msg, index) => (
@@ -72,7 +65,6 @@ export default function ChatInterface({
                 <div className="assistant-message">
                   <div className="message-label">LLM Council</div>
 
-                  {/* Stage 1 */}
                   {msg.loading?.stage1 && (
                     <div className="stage-loading">
                       <div className="spinner"></div>
@@ -81,7 +73,6 @@ export default function ChatInterface({
                   )}
                   {msg.stage1 && <Stage1 responses={msg.stage1} />}
 
-                  {/* Stage 2 */}
                   {msg.loading?.stage2 && (
                     <div className="stage-loading">
                       <div className="spinner"></div>
@@ -96,7 +87,6 @@ export default function ChatInterface({
                     />
                   )}
 
-                  {/* Stage 3 */}
                   {msg.loading?.stage3 && (
                     <div className="stage-loading">
                       <div className="spinner"></div>
@@ -120,7 +110,7 @@ export default function ChatInterface({
         <div ref={messagesEndRef} />
       </div>
 
-      {conversation.messages.length === 0 && (
+      {conversation && (
         <form className="input-form" onSubmit={handleSubmit}>
           <textarea
             className="message-input"
@@ -129,7 +119,7 @@ export default function ChatInterface({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={isLoading}
-            rows={3}
+            rows={2}
           />
           <button
             type="submit"

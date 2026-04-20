@@ -26,7 +26,7 @@ app.add_middleware(
 
 class CreateConversationRequest(BaseModel):
     """Request to create a new conversation."""
-    pass
+    user_id: str = "anonymous"
 
 
 class SendMessageRequest(BaseModel):
@@ -56,17 +56,19 @@ async def root():
     return {"status": "ok", "service": "LLM Council API"}
 
 
+from typing import Optional
+
 @app.get("/api/conversations", response_model=List[ConversationMetadata])
-async def list_conversations():
-    """List all conversations (metadata only)."""
-    return storage.list_conversations()
+async def list_conversations(user_id: str = "anonymous"):
+    """List all conversations (metadata only) for a user."""
+    return storage.list_conversations(user_id)
 
 
 @app.post("/api/conversations", response_model=Conversation)
 async def create_conversation(request: CreateConversationRequest):
     """Create a new conversation."""
     conversation_id = str(uuid.uuid4())
-    conversation = storage.create_conversation(conversation_id)
+    conversation = storage.create_conversation(conversation_id, request.user_id)
     return conversation
 
 
