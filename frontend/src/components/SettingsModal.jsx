@@ -148,7 +148,7 @@ function ModelSelect({ value, onChange, models }) {
       />
       {isOpen && (
         <div className="model-dropdown">
-          {filteredModels.slice(0, 50).map(m => (
+          {filteredModels.map(m => (
             <div 
               key={m.id} 
               className="model-option"

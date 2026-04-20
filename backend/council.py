@@ -98,6 +98,9 @@ Now provide your evaluation and ranking:"""
 
     messages = [{"role": "user", "content": ranking_prompt}]
 
+    settings = get_user_settings(user_id)
+    api_key = get_effective_api_key(user_id)
+
     # Get rankings from all council models in parallel
     responses = await query_models_parallel(settings.council_models, messages, api_key=api_key)
 
@@ -281,8 +284,10 @@ Title:"""
 
     messages = [{"role": "user", "content": title_prompt}]
 
+    api_key = get_effective_api_key(user_id)
+
     # Use gemini-2.5-flash for title generation (fast and cheap)
-    response = await query_model("google/gemini-2.5-flash", messages, timeout=30.0)
+    response = await query_model("google/gemini-2.5-flash", messages, timeout=30.0, api_key=api_key)
 
     if response is None:
         # Fallback to a generic title

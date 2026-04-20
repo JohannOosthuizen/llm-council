@@ -2,11 +2,12 @@
 
 import httpx
 from typing import List, Dict, Any, Optional
-from langfuse import Langfuse
+from langfuse import observe, Langfuse
 from .config import OPENROUTER_API_KEY, OPENROUTER_API_URL
 
 langfuse_client = Langfuse()
 
+@observe(as_type="generation")
 async def query_model(
     model: str,
     messages: List[Dict[str, str]],
@@ -29,11 +30,6 @@ async def query_model(
         "messages": messages,
     }
 
-    generation = langfuse_client.generation(
-        model=model,
-        input=messages,
-    )
-
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.post(
@@ -47,14 +43,17 @@ async def query_model(
             message = data['choices'][0]['message']
             content = message.get('content')
             
-            generation.end(
-                output=content,
-                usage={
-                    "input": data.get("usage", {}).get("prompt_tokens", 0),
-                    "output": data.get("usage", {}).get("completion_tokens", 0),
-                    "total": data.get("usage", {}).get("total_tokens", 0),
-                }
-            )
+            try:
+                langfuse_client.update_current_generation(
+                    model=model,
+                    usage_details={
+                        "input": data.get("usage", {}).get("prompt_tokens", 0),
+                        "output": data.get("usage", {}).get("completion_tokens", 0),
+                        "total": data.get("usage", {}).get("total_tokens", 0),
+                    }
+                )
+            except Exception as e:
+                pass
 
             return {
                 'content': content,
@@ -68,13 +67,20 @@ async def query_model(
         except Exception:
             pass
         print(f"HTTP error querying model {model}: {e}. Body: {error_text}", flush=True)
-        generation.end(level="ERROR", status_message=str(e))
+        try:
+            langfuse_client.update_current_generation(level="ERROR", status_message=str(e), model=model)
+        except Exception:
+            pass
         return None
     except Exception as e:
         print(f"Error querying model {model}: {e}", flush=True)
-        generation.end(level="ERROR", status_message=str(e))
+        try:
+            langfuse_client.update_current_generation(level="ERROR", status_message=str(e), model=model)
+        except Exception:
+            pass
         return None
 
+@observe()
 async def query_models_parallel(
     models: List[str],
     messages: List[Dict[str, str]],
