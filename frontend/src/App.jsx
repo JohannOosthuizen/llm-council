@@ -163,10 +163,25 @@ function App() {
       });
     } catch (error) {
       console.error('Failed to send message:', error);
-      setCurrentConversation((prev) => ({
-        ...prev,
-        messages: prev.messages.slice(0, -2),
-      }));
+      
+      if (error.message === 'REQUIRE_API_KEY') {
+        setSettingsOpen(true);
+        setCurrentConversation((prev) => {
+          const messages = [...prev.messages];
+          const lastMsg = messages[messages.length - 1];
+          lastMsg.loading = { stage1: false, stage2: false, stage3: false };
+          lastMsg.error = "You have used your 3 free councils! Please enter your own free OpenRouter API key in the settings to continue. You can create one at [https://openrouter.ai/sign-up](https://openrouter.ai/sign-up).";
+          return { ...prev, messages };
+        });
+      } else {
+        setCurrentConversation((prev) => {
+          const messages = [...prev.messages];
+          const lastMsg = messages[messages.length - 1];
+          lastMsg.loading = { stage1: false, stage2: false, stage3: false };
+          lastMsg.error = error.message;
+          return { ...prev, messages };
+        });
+      }
       setIsLoading(false);
     }
   };

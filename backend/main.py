@@ -1,6 +1,6 @@
 """FastAPI backend for LLM Council."""
 
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, Request
 from .user_settings import UserSettings, get_user_settings, save_user_settings
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -12,6 +12,7 @@ import asyncio
 
 from . import storage
 from .council import run_full_council, generate_conversation_title, stage1_collect_responses, stage2_collect_rankings, stage3_synthesize_final, calculate_aggregate_rankings
+from .rate_limit import check_and_increment_limit
 
 app = FastAPI(title="LLM Council API")
 
@@ -112,11 +113,18 @@ async def get_conversation(conversation_id: str):
 
 
 @app.post("/api/conversations/{conversation_id}/message")
-async def send_message(conversation_id: str, request: SendMessageRequest):
+async def send_message(conversation_id: str, request: SendMessageRequest, fastapi_req: Request):
     """
     Send a message and run the 3-stage council process.
     Returns the complete response with all stages.
     """
+    ip_address = fastapi_req.client.host
+    if not check_and_increment_limit(request.user_id, ip_address):
+        raise HTTPException(
+            status_code=429,
+            detail="REQUIRE_API_KEY"
+        )
+
     # Check if conversation exists
     conversation = storage.get_conversation(conversation_id)
     if conversation is None:
@@ -156,11 +164,18 @@ async def send_message(conversation_id: str, request: SendMessageRequest):
 
 
 @app.post("/api/conversations/{conversation_id}/message/stream")
-async def send_message_stream(conversation_id: str, request: SendMessageRequest):
+async def send_message_stream(conversation_id: str, request: SendMessageRequest, fastapi_req: Request):
     """
     Send a message and stream the 3-stage council process.
     Returns Server-Sent Events as each stage completes.
     """
+    ip_address = fastapi_req.client.host
+    if not check_and_increment_limit(request.user_id, ip_address):
+        raise HTTPException(
+            status_code=429,
+            detail="REQUIRE_API_KEY"
+        )
+
     # Check if conversation exists
     conversation = storage.get_conversation(conversation_id)
     if conversation is None:

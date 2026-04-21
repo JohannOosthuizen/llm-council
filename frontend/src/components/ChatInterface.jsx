@@ -94,6 +94,12 @@ export default function ChatInterface({
                     </div>
                   )}
                   {msg.stage3 && <Stage3 finalResponse={msg.stage3} />}
+
+                  {msg.error && (
+                    <div className="error-message">
+                      <ReactMarkdown>{msg.error}</ReactMarkdown>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

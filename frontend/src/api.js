@@ -90,11 +90,16 @@ export const api = {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content, user_id: getUserId() }),
       }
     );
     if (!response.ok) {
-      throw new Error('Failed to send message');
+      let errorMsg = 'Failed to send message';
+      try {
+        const errorData = await response.json();
+        if (errorData.detail) errorMsg = errorData.detail;
+      } catch (e) {}
+      throw new Error(errorMsg);
     }
     return response.json();
   },
@@ -114,12 +119,17 @@ export const api = {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content, user_id: getUserId() }),
       }
     );
 
     if (!response.ok) {
-      throw new Error('Failed to send message');
+      let errorMsg = 'Failed to send message';
+      try {
+        const errorData = await response.json();
+        if (errorData.detail) errorMsg = errorData.detail;
+      } catch (e) {}
+      throw new Error(errorMsg);
     }
 
     const reader = response.body.getReader();
